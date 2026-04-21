@@ -1,0 +1,115 @@
+# **EI Student Platform - 実装計画書 (Implementation Plan v1.1)**
+
+## **1. エグゼクティブサマリー**
+
+### **1.1. プロジェクト目的**
+イングリッシュイノベーションズ（EI）の生徒向けに、公式LINEを通じた利便性の高い「マイページ」を提供します。LINE ID（LIFF）をキーとしたシームレスな体験により、生徒は学習進捗の確認や、Vacation（休暇）・休学等の各種申請を数タップで完結できるようになります。これにより、生徒のエンゲージメント向上と、校舎スタッフの事務負担（ゼロ・アドミ）を同時に実現します。
+
+### **1.2. コア・バリュー**
+- **UXの極大化**: ログイン不要、LINEリッチメニューからのダイレクトアクセス。
+- **データの一元化**: Salesforce、Supabase、LINEを常時同期。
+- **インテリジェントな自動化**: School Break期間の自動判定や受講終了日の自動計算。
+
+---
+
+## **2. システムアーキテクチャ**
+
+### **2.1. 技術スタック**
+- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui, Radix UI, Lucide React
+- **Auth/Backend**: LINE Front-end Framework (LIFF), Supabase
+- **Data Synchronization**: n8n (iPaaS), Salesforce, Google Sheets
+- **Deployment**: Vercel
+
+### **2.2. データフロー図**
+```mermaid
+graph TD
+    User((生徒)) <--> LINE[LINEアプリ / LIFF]
+    LINE <--> NextJS[Next.js App / Vercel]
+    NextJS <--> Supabase[(Supabase DB)]
+    Supabase <--> n8n{n8n Automation}
+    n8n <--> SF[(Salesforce CRM)]
+    n8n <--> GS[(Google Sheets)]
+```
+
+---
+
+## **3. 実装済み機能 (v1.0 - v1.1)**
+
+### **3.1. 認証 & プロフィール管理**
+- **LIFF Auth (`hooks/use-liff-auth.ts`)**: 
+    - LINE User IDを取得し、Supabaseの `students` テーブルと自動照合。
+    - ローカル開発用のダミーデータフォールバック機能を完備。
+- **集中データ管理 (`hooks/use-student-data.ts`)**:
+    - 生徒のプロフィール、現在受講中の契約コース、学習履歴を効率的にフェッチ。
+
+### **3.2. 動的ダッシュボード (`app/page.tsx`)**
+- **ステータス制御**: `LEAD_STATUSES` (見込客等) と `STUDENT_STATUSES` (既存生徒等) に基づくUI出し分け。
+- **生徒用UI**: 出席率・受講終了日・目標スコアのサマリー表示と申請導線。
+- **リード用UI**: カウンセリングアンケートへの誘導を優先したカードUI。
+
+### **3.3. セルフサービス申請システム**
+- **Vacation申請 (`/vacation`)**: 
+    - 最大3週間の短期欠席に対応。
+- **休学申請 (`/leave`)**: 
+    - 4週間以上の長期欠席に対応。
+    - 支払い方法（振込・カード等）の選択機能を搭載。
+- **Vacation申請/休学申請のSB判定ロジック（School Break自動除外・計算）**:
+    - **データの取得**: `school_breaks` テーブルより、年間の休校期間をマスターとしてフェッチ。
+    - **選択肢の動的制御**: 
+        - 申請の開始日（月曜）および終了日（日曜）の選択肢を生成する際、SB期間に重なる日付を自動的にフィルタリング。
+    - **週数・延長計算**:
+        - 申請期間内の「月曜日」の数をカウントし、そのうちSB期間と重複する月曜日の数を `sb_weeks` として算出。
+        - 総週数から `sb_weeks` を差し引いた `effective_weeks`（実質週数）を決定。
+        - 生徒の現在の受講終了日に `effective_weeks` 分を加算し、将来の終了日 (`new_end_date`) を自動計算する。
+- **カウンセリングアンケート (`/counseling-form`)**: 
+    - 来校前の事前アンケート。
+    - `counseling_form_settings` に基づく動的フィールド生成。
+
+---
+
+## **4. データベース設計 (Supabase)**
+
+| テーブル名 | 用途 | 主要カラム |
+| :--- | :--- | :--- |
+| `students` | 生徒マスター | `line_id`, `sf_id`, `status`, `current_course_end_date` |
+| `contract_courses` | 契約コース情報 | `student_sf_id`, `course_name`, `status`, `end_date` |
+| `requests` | 申請ログ | `user_id`, `request_type`, `start_date`, `end_date`, `status` |
+| `school_breaks` | 休校期間マスタ | `start_date`, `end_date`, `description` |
+| `counseling_form_settings` | フォーム構成 | `field_type`, `label`, `options`, `is_required` |
+
+---
+
+## **5. フェーズ別実装ロードマップ**
+
+### ✅ **Phase 1: 基盤構築 (完了)**
+- [x] Next.js 開発環境および Supabase インフラ構築。
+- [x] LIFF SDK 統合と LINE ID による認証フロー。
+- [x] 生徒データ表示用ダッシュボードのプロトタイプ。
+
+### ✅ **Phase 2: ビジネスロジック実装 (完了)**
+- [x] Vacation/休学申請フォームの開発。
+- [x] School Break 自動除外ロジックの実装。
+- [x] IDベースの Salesforce データ紐付け (`sf_id` への移行)。
+- [x] `/success` ページの実装と LIFF ウィンドウ自動クローズ。
+
+### 🚀 **Phase 3: 拡張 & 本番稼働 (現在)**
+- [ ] **プッシュ通知統合**: 申請承認時の LINE Messaging API 連携。
+- [ ] **教材ダウンロード**: 受講コースに紐づいたPDF/音源へのアクセス提供。
+- [ ] **RLS ポリシー의 厳格化**: 本番環境に向けた Supabase セキュリティの最終調整。
+- [ ] **Vercel デプロイメント**: プロダクション環境への移行と疎通テスト。
+- [ ] **パフォーマンス最適化**: 画像アセットの最適化、APIレスポンスの高速化。
+
+---
+
+## **6. 開発ガイドライン**
+
+### **6.1. 設計原則**
+- **Aesthetics First**: ユーザーを惹きつける、モダンなダーク/グラスモーフィズムデザイン。
+- **Stability**: 外部 API（LINE/Salesforce）のダウンを想定したレジリエンス（回復力）の確保。
+- **Single Source of Truth**: データ更新は原則 Salesforce をオリジンとし、n8n で Supabase を同期。
+
+### **6.2. 運用ルール**
+- 環境変数は `.env.local` で管理（Git 除外）。Vercel 上で本番用キーを設定。
+- Zod によるフロントエンドバリデーションと、Supabase RLS によるバックエンドガードの二重化。
+- 申請フローの変更時は、必ず `ProjectPlan.md` および `SPECIFICATION.md` を更新すること。
