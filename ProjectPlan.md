@@ -1,4 +1,5 @@
-# **EI Student Platform - 実装計画書 (Implementation Plan v1.1)**
+# **EI Student Platform - 実装計画書 (Implementation Plan v1.2)**
+
 
 ## **1. エグゼクティブサマリー**
 
@@ -83,7 +84,8 @@ graph TD
 | :--- | :--- | :--- |
 | `students` | 生徒マスター | `line_id`, `sf_id`, `status`, `current_course_end_date` |
 | `contract_courses` | 契約コース情報 | `student_sf_id`, `course_name`, `status`, `end_date` |
-| `requests` | 申請ログ | `user_id`, `request_type`, `start_date`, `end_date`, `status` |
+| `requests` | 申請ログ | `user_id`, `request_type`, `start_date`, `end_date`, `status`, `sb_weeks`, `effective_weeks`, `extension_weeks`, `new_end_date`, `student_sf_id`, `contract_course_sf_id` |
+
 | `school_breaks` | 休校期間マスタ | `start_date`, `end_date`, `description` |
 | `counseling_form_settings` | フォーム構成 | `field_type`, `label`, `options`, `is_required` |
 
@@ -102,14 +104,18 @@ graph TD
 - [x] IDベースの Salesforce データ紐付け (`sf_id` への移行)。
 - [x] `/success` ページの実装と LIFF ウィンドウ自動クローズ。
 
-### 🚀 **Phase 3: 拡張 & 本番稼働 (現在)**
+### 🚀 **Phase 3: 拡張 & 本番稼働 (完了・安定化)**
 - [x] **メタデータ・OGP最適化**: 各ページの日本語タイトル・説明文の個別設定。
 - [x] **Vercel デプロイメント**: プロダクション環境への移行と疎通テスト。
 - [x] **TOPページの自動リダイレクト化**: ステータス連動型遷移の実装とUIのシンプル化。
+- [x] **運用のレジリエンス強化**: 認証エラー時の Google フォーム代替導線の実装。
+
+### 📅 **Phase 4: 将来的な拡張性**
 - [ ] **プッシュ通知統合**: 申請承認時の LINE Messaging API 連携。
 - [ ] **教材ダウンロード**: 受講コースに紐づいたPDF/音源へのアクセス提供。
-- [ ] **RLS ポリシーの厳格化**: 本番環境に向けた Supabase セキュリティの最終調整。
+- [ ] **RLS ポリシーの厳格化**: 本番環境に向けた Supabase セキュリティの最終精査。
 - [ ] **パフォーマンス最適化**: 画像アセットの最適化、APIレスポンスの高速化。
+
 
 ---
 
