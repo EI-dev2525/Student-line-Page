@@ -25,8 +25,11 @@ export function useLiffAuth() {
             const profile = await liff.getProfile()
             lineId = profile.userId
           } else if (!window.location.hostname.includes('localhost')) {
-            // ローカル以外でログインしていない場合はリダイレクト
-            liff.login()
+            // ログインしていない場合はログイン画面へ
+            // ログイン後に現在のパス（/vacation等）を維持するため、redirectUriに現在のURLを指定します
+            liff.login({
+              redirectUri: window.location.href
+            })
             return
           }
         }
