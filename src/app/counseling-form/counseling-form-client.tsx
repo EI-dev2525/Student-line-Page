@@ -3,6 +3,7 @@
 import { useLiffAuth } from '@/hooks/use-liff-auth'
 import { FormPageLayout } from '@/components/form-page-layout'
 import { CounselingForm } from '@/components/counseling-form'
+import { ErrorDisplay } from '@/components/error-display'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
 
@@ -24,10 +25,13 @@ export default function CounselingFormClient() {
   if (error || !studentData) {
     return (
       <FormPageLayout title="">
-        <div className="p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
-          <p className="font-bold">エラーが発生しました</p>
-          <p className="text-sm">ユーザー情報の読み込みに失敗しました。</p>
-        </div>
+        <ErrorDisplay 
+          externalLink={{
+            text: "フォームから回答する",
+            url: "https://forms.gle/5qBMwN2JBjRMpDcLA",
+            description: "こちらから直接ご回答いただけます。"
+          }}
+        />
       </FormPageLayout>
     )
   }

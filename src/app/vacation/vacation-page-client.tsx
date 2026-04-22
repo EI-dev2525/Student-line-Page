@@ -3,6 +3,7 @@
 import { useLiffAuth } from '@/hooks/use-liff-auth'
 import { FormPageLayout } from '@/components/form-page-layout'
 import { VacationRequestForm } from '@/components/vacation-request-form'
+import { ErrorDisplay } from '@/components/error-display'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
 
@@ -26,10 +27,13 @@ export default function VacationPageClient() {
   if (error || !studentData) {
     return (
       <FormPageLayout title="Vacation申請">
-        <div className="p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
-          <p className="font-bold">エラーが発生しました</p>
-          <p className="text-sm">ユーザー情報の読み込みに失敗しました。マイページTOPから再度お試しください。</p>
-        </div>
+        <ErrorDisplay 
+          externalLink={{
+            text: "Vacation・休学申請フォーム",
+            url: "https://forms.gle/kSj4ZEqwQ78RaecU7",
+            description: "申請はこちらのフォームからも受け付けております。"
+          }}
+        />
       </FormPageLayout>
     )
   }
