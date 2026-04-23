@@ -124,10 +124,11 @@ type FormValues = z.infer<typeof formSchema>
 
 interface CounselingFormProps {
   studentId: string
+  studentSfId?: string | null
   onSuccess?: () => void
 }
 
-export function CounselingForm({ studentId, onSuccess }: CounselingFormProps) {
+export function CounselingForm({ studentId, studentSfId, onSuccess }: CounselingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [settings, setSettings] = useState<FieldSetting[]>(FALLBACK_SETTINGS)
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
@@ -199,7 +200,8 @@ export function CounselingForm({ studentId, onSuccess }: CounselingFormProps) {
       const { error } = await supabase
         .from('counseling_forms')
         .insert({
-          student_id: studentId,
+          student_line_id: studentId,
+          student_sf_id: studentSfId || null,
           details: details,
           status: 'pending'
         })

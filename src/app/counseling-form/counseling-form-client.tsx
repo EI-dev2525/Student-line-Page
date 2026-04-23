@@ -39,7 +39,8 @@ export default function CounselingFormClient() {
   return (
     <FormPageLayout title="">
       <CounselingForm 
-        studentId={studentData.line_id} 
+        studentId={studentData.line_id}
+        studentSfId={studentData.sf_id || null}
         onSuccess={() => {
           router.push('/success?type=counseling')
         }} 

@@ -107,6 +107,8 @@ export type Database = {
           id: string
           status: string | null
           student_id: string | null
+          student_line_id: string | null
+          student_sf_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -114,6 +116,8 @@ export type Database = {
           id?: string
           status?: string | null
           student_id?: string | null
+          student_line_id?: string | null
+          student_sf_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -121,6 +125,8 @@ export type Database = {
           id?: string
           status?: string | null
           student_id?: string | null
+          student_line_id?: string | null
+          student_sf_id?: string | null
         }
         Relationships: [
           {
