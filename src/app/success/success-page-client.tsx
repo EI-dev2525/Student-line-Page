@@ -85,7 +85,16 @@ function SuccessContent() {
           </div>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-4 space-y-3">
+          {type === 'vacation' && (
+            <Button 
+              onClick={() => router.push('/vacation')} 
+              className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              <CheckCircle className="h-5 w-5" />
+              続けて別のコースも申請する
+            </Button>
+          )}
           <Button 
             onClick={handleClose} 
             className="w-full h-12 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-xl transition-all"

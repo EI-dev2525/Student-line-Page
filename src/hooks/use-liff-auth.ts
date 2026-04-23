@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { Student } from '@/types'
 
 export function useLiffAuth() {
-  const [studentData, setStudentData] = useState<Student | null>(null)
+  const [studentData, setStudentData] = useState<any | null>(null)
+  const [isLead, setIsLead] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,8 +26,6 @@ export function useLiffAuth() {
             const profile = await liff.getProfile()
             lineId = profile.userId
           } else if (!window.location.hostname.includes('localhost')) {
-            // ログインしていない場合はログイン画面へ
-            // ログイン後に現在のパス（/vacation等）を維持するため、redirectUriに現在のURLを指定します
             liff.login({
               redirectUri: window.location.href
             })
@@ -38,21 +37,31 @@ export function useLiffAuth() {
       }
 
       try {
-        // Supabaseから学生データを取得
-        const { data, error: sbError } = await supabase
+        // 1. まずは students テーブルを確認
+        const { data: student, error: studentError } = await supabase
           .from('students')
           .select('*')
           .eq('line_id', lineId)
           .single()
 
-        if (sbError) {
-          if (sbError.code === 'PGRST116') {
-            setStudentData(null)
-          } else {
-            throw new Error(sbError.message)
-          }
+        if (student) {
+          setStudentData(student)
+          setIsLead(false)
         } else {
-          setStudentData(data)
+          // 2. 存在しなければ leads テーブルを確認
+          const { data: lead, error: leadError } = await supabase
+            .from('leads')
+            .select('*')
+            .eq('line_id', lineId)
+            .single()
+
+          if (lead) {
+            setStudentData(lead)
+            setIsLead(true)
+          } else {
+            setStudentData(null)
+            setIsLead(false)
+          }
         }
       } catch (err: any) {
         console.error('Supabase Error:', err)
@@ -67,6 +76,7 @@ export function useLiffAuth() {
 
   return {
     studentData,
+    isLead,
     isLoading,
     error,
   }

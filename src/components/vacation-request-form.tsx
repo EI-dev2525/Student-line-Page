@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
-import { Loader2, CalendarIcon, Info, CalendarCheck, BookOpen } from 'lucide-react'
+import { Loader2, CalendarIcon, Info, CalendarCheck, BookOpen, Clock } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { useWatch } from 'react-hook-form'
 import { format, parseISO, addWeeks, isAfter } from 'date-fns'
@@ -36,7 +36,7 @@ const formSchema = z.object({
   contract_course_id: z.string().min(1, "対象コースを選択してください"),
   start_date: z.string().min(1, "開始日を選択してください"),
   end_date: z.string().min(1, "終了日を選択してください"),
-  reason: z.string().min(1, "理由を入力してください").max(1000, "1000文字以内で入力してください"),
+  reason: z.string().max(1000, "1000文字以内で入力してください").optional().or(z.literal('')),
 }).refine((data) => {
   const start = parseISO(data.start_date)
   const end = parseISO(data.end_date)
@@ -164,24 +164,19 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
     setIsSubmitting(true)
     try {
       const { error } = await supabase
-        .from('requests')
+        .from('vacation_requests')
         .insert({
-          user_id: studentId,
+          student_line_id: studentId,
           student_sf_id: studentProfile?.sf_id || null,
           contract_course_sf_id: values.contract_course_id,
-          request_type: 'vacation',
           start_date: values.start_date,
           end_date: values.end_date,
           reason: values.reason,
           status: 'pending',
-          sb_weeks_count: periodCalculation?.sbWeeks || 0,
-          extension_weeks: periodCalculation?.actualWeeks || 0,
-          original_end_date: studentProfile?.current_course_end_date || null,
-          new_end_date: periodCalculation?.newEndDate,
-          // 標準カラム
           total_weeks: periodCalculation?.totalWeeks || 0,
           sb_weeks: periodCalculation?.sbWeeks || 0,
-          effective_weeks: periodCalculation?.actualWeeks || 0
+          effective_weeks: periodCalculation?.actualWeeks || 0,
+          new_end_date: periodCalculation?.newEndDate
         })
 
       if (error) throw error
@@ -218,7 +213,7 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
             <p className="text-sm text-slate-500 font-bold mb-1 flex items-center gap-2">
               対象コース
             </p>
-            <p className="text-base font-bold text-slate-800">{regularCourses[0].course_name}</p>
+            <p className="text-base font-bold text-slate-800 truncate">{regularCourses[0].course_name}</p>
             {/* hiddenフィールドを使わなくてもsetValueで状態管理されているため値は送信されます */}
           </div>
         ) : (
@@ -233,14 +228,16 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || ""}>
                   <FormControl>
-                    <SelectTrigger className="h-12 bg-white">
-                      <SelectValue placeholder="対象コースを選択" />
+                    <SelectTrigger className="h-12 bg-white w-full overflow-hidden">
+                      <SelectValue placeholder="対象コースを選択">
+                        {field.value ? regularCourses.find(c => c.sf_id === field.value)?.course_name : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {regularCourses.map((c) => (
                       <SelectItem key={c.sf_id} value={c.sf_id}>
-                        {c.course_name}
+                        <span className="truncate">{c.course_name}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -263,8 +260,8 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || ""}>
                   <FormControl>
-                    <SelectTrigger className="h-12 bg-white">
-                      <SelectValue placeholder="開始週を選択" />
+                    <SelectTrigger className="h-12 bg-white w-full overflow-hidden">
+                      <SelectValue placeholder="開始週を選択" className="truncate" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -291,8 +288,8 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || ""}>
                   <FormControl>
-                    <SelectTrigger className="h-12 bg-white" disabled={!startDate}>
-                      <SelectValue placeholder={startDate ? "終了週を選択" : "開始日を先に選択してください"} />
+                    <SelectTrigger className="h-12 bg-white w-full overflow-hidden" disabled={!startDate}>
+                      <SelectValue placeholder={startDate ? "終了週を選択" : "開始日を先に選択してください"} className="truncate" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -310,16 +307,36 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
         </div>
 
         {periodCalculation && (
-          <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 flex flex-col items-center justify-center space-y-3">
-            <div className="flex items-center gap-3 text-blue-800">
-              <CalendarCheck className="h-6 w-6 text-blue-600" />
-              <span className="text-xl font-bold">申請期間：{periodCalculation.actualWeeks} 週間</span>
+          <div className="bg-blue-50/50 rounded-2xl border border-blue-200 p-6 space-y-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* メイン表示（横並び） */}
+            <div className="flex items-center justify-center gap-3 py-1">
+              <div className="bg-blue-100 p-2.5 rounded-xl">
+                <Clock className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-bold text-blue-800">申請期間：</span>
+                <span className="text-3xl font-black text-blue-900 leading-none flex items-baseline">
+                  {periodCalculation.actualWeeks}
+                  <span className="text-xl font-bold ml-1">週間</span>
+                </span>
+              </div>
             </div>
-            {periodCalculation.sbWeeks > 0 && (
-              <p className="text-xs text-blue-600 text-center leading-relaxed max-w-[280px]">
-                ※ 期間内にSchool Break期間が含まれるため、<br />その分は申請期間から除外されます。
-              </p>
-            )}
+            
+            <div className="pt-4 border-t border-blue-200/50 space-y-3">
+              {/* 補足説明 */}
+              <div className="flex items-center justify-center gap-2 text-blue-700 bg-white/80 py-2.5 px-4 rounded-xl border border-blue-100 shadow-sm mx-auto w-fit">
+                <Info className="h-4 w-4 text-blue-500 shrink-0" />
+                <p className="text-sm font-bold">
+                  対象コースの受講終了日が <span className="text-blue-900 font-black">{periodCalculation.actualWeeks}週間</span> 延長されます
+                </p>
+              </div>
+              
+              {periodCalculation.sbWeeks > 0 && (
+                <p className="text-[11px] text-blue-500/70 text-center leading-tight">
+                  ※申請期間内の School Break ({periodCalculation.sbWeeks}週間) は、申請期間に含まれません。
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -347,7 +364,8 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
           <p className="text-sm text-blue-800 leading-relaxed">
             ※ Vacation申請は、申請いただいた期間分、受講期間が延長されます。<br/>
-            ※ 複数コースをご受講の場合は、クラスごとに申請をお送りください。<br/>
+            ※ 複数コースをご受講の場合は、クラスごとに申請をお送りください。特定のクラスのみをお休みすることも可能です。<br/>
+            ※ 受講期間の延長は、申請をいただいたコースごとに適用されます。<br/>
             ※ 4週間以上連続でお休みする場合は休学申請となります。<br/>
             　（1回の申請につき5,500円(税込)の手数料が発生します。）
           </p>

@@ -1,4 +1,4 @@
-# **EI Student Platform - 実装計画書 (Implementation Plan v1.2)**
+# **EI Student Platform - 実装計画書 (Implementation Plan v1.6)**
 
 
 ## **1. エグゼクティブサマリー**
@@ -39,7 +39,8 @@ graph TD
 
 ### **3.1. 認証 & プロフィール管理**
 - **LIFF Auth (`hooks/use-liff-auth.ts`)**: 
-    - LINE User IDを取得し、Supabaseの `students` テーブルと自動照合。
+    - LINE User IDを取得し、Supabaseの `leads` と `students` テーブルを順番に照合。
+    - 取得元に応じた `isLead` フラグを返し、アプリケーション全体でユーザー属性を即座に判別可能。
     - **ディープリンク対応**: `liff.login` 時の `redirectUri` 制御により、直接リンクからの遷移でもパスを維持。
     - ローカル開発用のダミーデータフォールバック機能を完備。
 - **集中データ管理 (`hooks/use-student-data.ts`)**:
@@ -48,8 +49,8 @@ graph TD
 ### **3.2. ステータス連動型自動リダイレクト (`app/page.tsx`)**
 - **役割の変更**: TOPページをダッシュボード表示から、ステータスに応じた**自動リダイレクト・ハブ**へと変更。
 - **リダイレクト判定**: 
-    - 「来校済」および `STUDENT_STATUSES` (ポジポジ等) -> `/vacation` (既存生徒の最頻用ページ)
-    - その他 `LEAD_STATUSES` (問い合わせ等) -> `/counseling-form` (事前アンケート)
+    - `isLead` が `false` (既存生徒) -> `/vacation` (既存生徒の最頻用ページ)
+    - `isLead` が `true` (リード) -> `/counseling-form` (事前アンケート)
 - **UI非表示による安全性**: リダイレクト判定中はロゴとローディングのみを表示し、個人情報や学習状況のフラッシュ（一瞬の表示）を完全に防止。
 
 ### **3.3. セルフサービス申請システム**
@@ -76,16 +77,45 @@ graph TD
     - 認証エラー発生時でも運用が止まらないよう、各申請種別に応じたGoogleフォームへの代替導線（ボタン）を実装。
     - カウンセリング、Vacation、休学のそれぞれの目的に最適化されたフォームURLを自動的に出し分け。
 
+### **3.5. UI/UX 精緻化 (v1.3)**
+- **テキストのはみ出し防止 (Truncation Logic)**:
+    - コース名や日付、支払い方法などの長いテキストが UI を破壊しないよう、全ての `SelectTrigger` と `SelectValue` に `truncate` および `overflow-hidden` を適用。
+- **インテリジェントな表示ロジック**:
+    - `Select` コンポーネントにおいて、内部的な ID（`sf_id` 等）をユーザーに表示せず、常に人間が判読可能な名称（`course_name` 等）が表示されるようロジックを最適化。
+- **デバッグログの徹底排除**:
+    - 本番環境でのパフォーマンスとセキュリティを考慮し、データフェッチ層のデバッグログをクリーンアップ。
+
+### **3.6. Vacation 申請 UX の高度化 (v1.4)**
+- **動的延長リマインド機能**:
+    - 申請期間の選択と連動し、「何週間コースが延長されるか」をリアルタイムでフォーム上に表示。
+- **連続申請サポート**:
+    - 複数コース受講者がストレスなく申請を完了できるよう、完了画面から再度申請フォームへ戻る「続けて別のコースも申請する」導線を追加。
+
+### **3.7. Vacation 申請 UI の統合・洗練 (v1.5)**
+- **サマリーカードの導入**:
+    - 重複していた延長アラートと期間表示ボックスを、1つの視認性の高いカード UI に統合。
+    - 「何週間休むか（申請期間）」をメインとし、その結果「いつまで延長されるか」を補足として配置する階層構造を採用。
+- **ビジュアル・ブラッシュアップ**:
+    - `shadcn/ui` のトーンに合わせた清潔感のある青ベースのカードデザイン、アイコン活用、およびアニメーション (`animate-in`) を適用。
+
+### **3.8. 申請テーブルの分割とID設計の統一 (v1.6)**
+- **テーブルの専門化**:
+    - 運用上の簡略化と n8n 連携の最適化のため、`requests` テーブルを `vacation_requests` と `leave_requests` に分割。
+- **Salesforce ID への完全移行**:
+    - UUID ベースの `user_id` を廃止。`student_sf_id` および `contract_course_sf_id` を主軸とした Salesforce 連携基盤に統一。
+
 ---
 
 ## **4. データベース設計 (Supabase)**
 
 | テーブル名 | 用途 | 主要カラム |
 | :--- | :--- | :--- |
-| `students` | 生徒マスター | `line_id`, `sf_id`, `status`, `current_course_end_date` |
-| `contract_courses` | 契約コース情報 | `student_sf_id`, `course_name`, `status`, `end_date` |
-| `requests` | 申請ログ | `user_id`, `request_type`, `start_date`, `end_date`, `status`, `sb_weeks`, `effective_weeks`, `extension_weeks`, `new_end_date`, `student_sf_id`, `contract_course_sf_id` |
-
+| `leads` | 見込み客マスター | `line_id` (PK), `sf_id`, `status`, `campus`, `course`, `level`, `purpose` |
+| `students` | 既存生徒マスター | `line_id` (PK), `sf_id`, `status`, `campus`, `target_score`, `starting_score`, `current_course_end_date` |
+| `contract_courses` | 契約コース情報 | `student_id` (Salesforce Account ID), `course_name`, `status`, `end_date`, `start_date`, `campus`, `student_line_id`, `student_name` |
+| `vacation_requests` | Vacation申請ログ | `student_line_id`, `contract_course_sf_id`, `student_sf_id`, `start_date`, `end_date`, `effective_weeks`, `new_end_date`, `status`, `sb_weeks` |
+| `leave_requests` | 休学申請ログ | `student_line_id`, `contract_course_sf_id`, `student_sf_id`, `start_date`, `end_date`, `payment_method`, `status`, `sb_weeks` |
+| `counseling_forms` | アンケート回答 | `student_line_id`, `details`, `status` |
 | `school_breaks` | 休校期間マスタ | `start_date`, `end_date`, `description` |
 | `counseling_form_settings` | フォーム構成 | `field_type`, `label`, `options`, `is_required` |
 
@@ -109,6 +139,9 @@ graph TD
 - [x] **Vercel デプロイメント**: プロダクション環境への移行と疎通テスト。
 - [x] **TOPページの自動リダイレクト化**: ステータス連動型遷移の実装とUIのシンプル化。
 - [x] **運用のレジリエンス強化**: 認証エラー時の Google フォーム代替導線の実装。
+- [x] **テーブル設計の最適化 (v1.3)**: `students` テーブルを `leads` と `students` に分割し、Salesforce の設計に準拠。
+- [x] **Salesforce 同期ロジックの刷新**: HTTP Callout (UPSERT) への対応と RLS ポリシーの調整。
+- [x] **取得ロジックの優先順位付け**: `useStudentData` における既存生徒優先フェッチの実装。
 
 ### 📅 **Phase 4: 将来的な拡張性**
 - [ ] **プッシュ通知統合**: 申請承認時の LINE Messaging API 連携。

@@ -7,26 +7,24 @@ import { STUDENT_STATUSES, StudentStatus } from '@/types'
 import { Loader2, UserCircle } from 'lucide-react'
 
 export default function MyPage() {
-  const { studentData, isLoading, error } = useLiffAuth()
+  const { studentData, isLead, isLoading, error } = useLiffAuth()
   const router = useRouter()
 
   useEffect(() => {
     // データ読み込み完了後かつデータが存在する場合にリダイレクト処理を実行
     if (!isLoading && studentData) {
-      const { status } = studentData
-      
       /**
        * リダイレクトロジック:
-       * - ステータスが「来校済」または「生徒表示グループ (ポジポジ, 休学中等)」の場合 -> /vacation へ
-       * - それ以外（問い合わせ等のリードグループ）の場合 -> /counseling-form へ
+       * - isLead が false（studentsテーブル由来）の場合 -> /vacation へ
+       * - isLead が true（leadsテーブル由来）の場合 -> /counseling-form へ
        */
-      if (status === '来校済' || (status && STUDENT_STATUSES.includes(status as StudentStatus))) {
+      if (!isLead) {
         router.push('/vacation')
       } else {
         router.push('/counseling-form')
       }
     }
-  }, [isLoading, studentData, router])
+  }, [isLoading, studentData, isLead, router])
 
   // 1. ローディング表示（判定中 または 判定後の遷移待ち中）
   // ユーザーにダッシュボードが見えないよう、遷移が完了するまでこの画面を維持します

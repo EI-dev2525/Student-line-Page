@@ -44,7 +44,7 @@ export default function LeavePageClient() {
       description="休学を希望する期間と理由を入力してください。スタッフが確認後、順次ご連絡いたします。"
     >
       <LeaveRequestForm 
-        studentId={studentData.id} 
+        studentId={studentData.line_id} 
         onSuccess={() => {
           setTimeout(() => router.push('/'), 2000)
         }} 

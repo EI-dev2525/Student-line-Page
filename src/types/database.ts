@@ -16,34 +16,43 @@ export type Database = {
     Tables: {
       contract_courses: {
         Row: {
+          campus: string | null
           course_name: string
           end_date: string | null
           id: string
           is_regular: boolean | null
           sf_id: string
+          start_date: string | null
           status: string
           student_id: string | null
-          student_sf_id: string | null
+          student_line_id: string | null
+          student_name: string | null
         }
         Insert: {
+          campus?: string | null
           course_name: string
           end_date?: string | null
           id?: string
           is_regular?: boolean | null
           sf_id: string
+          start_date?: string | null
           status: string
           student_id?: string | null
-          student_sf_id?: string | null
+          student_line_id?: string | null
+          student_name?: string | null
         }
         Update: {
+          campus?: string | null
           course_name?: string
           end_date?: string | null
           id?: string
           is_regular?: boolean | null
           sf_id?: string
+          start_date?: string | null
           status?: string
           student_id?: string | null
-          student_sf_id?: string | null
+          student_line_id?: string | null
+          student_name?: string | null
         }
         Relationships: [
           {
@@ -51,7 +60,7 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
-            referencedColumns: ["id"]
+            referencedColumns: ["sf_id"]
           },
         ]
       }
@@ -123,79 +132,104 @@ export type Database = {
           },
         ]
       }
-      requests: {
+      vacation_requests: {
         Row: {
-          contract_course_id: string | null
-          contract_course_sf_id: string | null
-          created_at: string | null
-          effective_weeks: number | null
-          end_date: string
-          extension_weeks: number | null
           id: string
-          new_end_date: string | null
-          original_end_date: string | null
-          payment_method: string | null
-          reason: string | null
-          request_type: string
-          sb_weeks: number | null
-          sb_weeks_count: number | null
+          created_at: string | null
+          student_sf_id: string
+          contract_course_sf_id: string
+          student_line_id: string | null
           start_date: string
-          status: string | null
-          student_sf_id: string | null
+          end_date: string
           total_weeks: number | null
-          user_id: string | null
+          sb_weeks: number | null
+          effective_weeks: number | null
+          new_end_date: string | null
+          reason: string | null
+          status: string | null
         }
         Insert: {
-          contract_course_id?: string | null
-          contract_course_sf_id?: string | null
-          created_at?: string | null
-          effective_weeks?: number | null
-          end_date: string
-          extension_weeks?: number | null
           id?: string
-          new_end_date?: string | null
-          original_end_date?: string | null
-          payment_method?: string | null
-          reason?: string | null
-          request_type: string
-          sb_weeks?: number | null
-          sb_weeks_count?: number | null
+          created_at?: string | null
+          student_sf_id: string
+          contract_course_sf_id: string
+          student_line_id?: string | null
           start_date: string
-          status?: string | null
-          student_sf_id?: string | null
+          end_date: string
           total_weeks?: number | null
-          user_id?: string | null
+          sb_weeks?: number | null
+          effective_weeks?: number | null
+          new_end_date?: string | null
+          reason?: string | null
+          status?: string | null
         }
         Update: {
-          contract_course_id?: string | null
-          contract_course_sf_id?: string | null
-          created_at?: string | null
-          effective_weeks?: number | null
-          end_date?: string
-          extension_weeks?: number | null
           id?: string
+          created_at?: string | null
+          student_sf_id?: string
+          contract_course_sf_id?: string
+          student_line_id?: string | null
+          start_date?: string
+          end_date?: string
+          total_weeks?: number | null
+          sb_weeks?: number | null
+          effective_weeks?: number | null
           new_end_date?: string | null
-          original_end_date?: string | null
+          reason?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      leave_requests: {
+        Row: {
+          id: string
+          created_at: string | null
+          student_sf_id: string
+          contract_course_sf_id: string
+          student_line_id: string | null
+          start_date: string
+          end_date: string
+          total_weeks: number | null
+          sb_weeks: number | null
+          effective_weeks: number | null
+          new_end_date: string | null
+          payment_method: string | null
+          reason: string | null
+          status: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string | null
+          student_sf_id: string
+          contract_course_sf_id: string
+          student_line_id?: string | null
+          start_date: string
+          end_date: string
+          total_weeks?: number | null
+          sb_weeks?: number | null
+          effective_weeks?: number | null
+          new_end_date?: string | null
           payment_method?: string | null
           reason?: string | null
-          request_type?: string
-          sb_weeks?: number | null
-          sb_weeks_count?: number | null
-          start_date?: string
           status?: string | null
-          student_sf_id?: string | null
-          total_weeks?: number | null
-          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
+        Update: {
+          id?: string
+          created_at?: string | null
+          student_sf_id?: string
+          contract_course_sf_id?: string
+          student_line_id?: string | null
+          start_date?: string
+          end_date?: string
+          total_weeks?: number | null
+          sb_weeks?: number | null
+          effective_weeks?: number | null
+          new_end_date?: string | null
+          payment_method?: string | null
+          reason?: string | null
+          status?: string | null
+        }
+        Relationships: []
       }
       school_breaks: {
         Row: {
@@ -221,8 +255,48 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          campus: string | null
+          course: string | null
+          email: string | null
+          full_name: string | null
+          level: string | null
+          line_id: string
+          purpose: string | null
+          sf_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          campus?: string | null
+          course?: string | null
+          email?: string | null
+          full_name?: string | null
+          level?: string | null
+          line_id: string
+          purpose?: string | null
+          sf_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          campus?: string | null
+          course?: string | null
+          email?: string | null
+          full_name?: string | null
+          level?: string | null
+          line_id?: string
+          purpose?: string | null
+          sf_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       students: {
         Row: {
+          campus: string | null
           course_name: string | null
           current_course_end_date: string | null
           email: string | null
@@ -232,10 +306,13 @@ export type Database = {
           id: string
           line_id: string
           sf_id: string | null
+          starting_score: string | null
           status: string | null
+          target_score: string | null
           updated_at: string | null
         }
         Insert: {
+          campus?: string | null
           course_name?: string | null
           current_course_end_date?: string | null
           email?: string | null
@@ -245,10 +322,13 @@ export type Database = {
           id?: string
           line_id: string
           sf_id?: string | null
+          starting_score?: string | null
           status?: string | null
+          target_score?: string | null
           updated_at?: string | null
         }
         Update: {
+          campus?: string | null
           course_name?: string | null
           current_course_end_date?: string | null
           email?: string | null
@@ -258,7 +338,9 @@ export type Database = {
           id?: string
           line_id?: string
           sf_id?: string | null
+          starting_score?: string | null
           status?: string | null
+          target_score?: string | null
           updated_at?: string | null
         }
         Relationships: []

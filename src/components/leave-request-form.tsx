@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
-import { Loader2, CalendarIcon, Info, CalendarCheck, CreditCard, Banknote, Coins, BookOpen } from 'lucide-react'
+import { Loader2, CalendarIcon, Info, CalendarCheck, CreditCard, Banknote, Coins, BookOpen, Clock } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { useWatch } from 'react-hook-form'
 import { format, parseISO, eachDayOfInterval, isMonday, isWithinInterval, startOfDay, addWeeks } from 'date-fns'
@@ -38,7 +38,7 @@ const formSchema = z.object({
   start_date: z.string().min(1, "開始日を選択してください"),
   end_date: z.string().min(1, "終了日を選択してください"),
   payment_method: z.string().min(1, "お支払い方法を選択してください"),
-  reason: z.string().min(1, "理由を入力してください").max(1000, "1000文字以内で入力してください"),
+  reason: z.string().max(1000, "1000文字以内で入力してください").optional().or(z.literal('')),
 })
 
 interface LeaveRequestFormProps {
@@ -140,12 +140,11 @@ export function LeaveRequestForm({ studentId, onSuccess }: LeaveRequestFormProps
     setIsSubmitting(true)
     try {
       const { error } = await supabase
-        .from('requests')
+        .from('leave_requests')
         .insert({
-          user_id: studentId,
+          student_line_id: studentId,
           student_sf_id: studentProfile?.sf_id || null,
           contract_course_sf_id: targetCourse?.sf_id || null,
-          request_type: 'leave',
           start_date: values.start_date,
           end_date: values.end_date,
           reason: values.reason,
@@ -154,7 +153,6 @@ export function LeaveRequestForm({ studentId, onSuccess }: LeaveRequestFormProps
           total_weeks: periodCalculation?.totalWeeks || 0,
           sb_weeks: periodCalculation?.sbWeeks || 0,
           effective_weeks: periodCalculation?.actualWeeks || 0,
-          original_end_date: studentProfile?.current_course_end_date || null,
           new_end_date: periodCalculation?.newEndDate
         })
 
@@ -217,8 +215,8 @@ export function LeaveRequestForm({ studentId, onSuccess }: LeaveRequestFormProps
                   <FormLabel className="text-base font-bold">開始日（月曜日）</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
-                      <SelectTrigger className="h-12 bg-white">
-                        <SelectValue placeholder="開始日を選択" />
+                      <SelectTrigger className="h-12 bg-white w-full overflow-hidden">
+                        <SelectValue placeholder="開始日を選択" className="truncate" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -246,8 +244,8 @@ export function LeaveRequestForm({ studentId, onSuccess }: LeaveRequestFormProps
                     disabled={!startDate}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-12 bg-white">
-                        <SelectValue placeholder={startDate ? "終了日を選択" : "先に開始日を選択してください"} />
+                      <SelectTrigger className="h-12 bg-white w-full overflow-hidden">
+                        <SelectValue placeholder={startDate ? "終了日を選択" : "先に開始日を選択してください"} className="truncate" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -280,7 +278,7 @@ export function LeaveRequestForm({ studentId, onSuccess }: LeaveRequestFormProps
                   <FormLabel className="text-base font-bold">お支払い方法</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
-                      <SelectTrigger className="h-12 bg-white">
+                      <SelectTrigger className="h-12 bg-white w-full overflow-hidden">
                         <SelectValue placeholder="お支払い方法を選択">
                           {selectedMethod && (
                             <div className="flex items-center gap-2">
@@ -309,16 +307,36 @@ export function LeaveRequestForm({ studentId, onSuccess }: LeaveRequestFormProps
           />
 
           {periodCalculation && (
-            <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 flex flex-col items-center justify-center space-y-3">
-              <div className="flex items-center gap-3 text-blue-800">
-                <CalendarCheck className="h-6 w-6 text-blue-600" />
-                <span className="text-xl font-bold">申請期間：{periodCalculation.actualWeeks} 週間</span>
+            <div className="bg-blue-50/50 rounded-2xl border border-blue-200 p-6 space-y-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
+              {/* メイン表示（横並び） */}
+              <div className="flex items-center justify-center gap-3 py-1">
+                <div className="bg-blue-100 p-2.5 rounded-xl">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-blue-800">申請期間：</span>
+                  <span className="text-3xl font-black text-blue-900 leading-none flex items-baseline">
+                    {periodCalculation.actualWeeks}
+                    <span className="text-xl font-bold ml-1">週間</span>
+                  </span>
+                </div>
               </div>
-              {periodCalculation.sbWeeks > 0 && (
-                <p className="text-xs text-blue-600 text-center leading-relaxed max-w-[280px]">
-                  ※ 期間内にSchool Break期間が含まれるため、その分は申請期間から除外されます。
-                </p>
-              )}
+              
+              <div className="pt-4 border-t border-blue-200/50 space-y-3">
+                {/* 補足説明 */}
+                <div className="flex items-center justify-center gap-2 text-blue-700 bg-white/80 py-2.5 px-4 rounded-xl border border-blue-100 shadow-sm mx-auto w-fit">
+                  <Info className="h-4 w-4 text-blue-500 shrink-0" />
+                  <p className="text-sm font-bold">
+                    対象コースの受講終了日が <span className="text-blue-900 font-black">{periodCalculation.actualWeeks}週間</span> 延長されます
+                  </p>
+                </div>
+                
+                {periodCalculation.sbWeeks > 0 && (
+                  <p className="text-[11px] text-blue-500/70 text-center leading-tight">
+                    ※申請期間内の School Break ({periodCalculation.sbWeeks}週間) は、申請期間に含まれません。
+                  </p>
+                )}
+              </div>
             </div>
           )}
 

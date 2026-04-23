@@ -44,7 +44,7 @@ export default function VacationPageClient() {
       description="希望する期間を入力してください。"
     >
       <VacationRequestForm 
-        studentId={studentData.id} 
+        studentId={studentData.line_id} 
         onSuccess={() => {
           setTimeout(() => router.push('/'), 2000)
         }} 
