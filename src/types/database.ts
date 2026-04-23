@@ -102,31 +102,28 @@ export type Database = {
       }
       counseling_forms: {
         Row: {
-          created_at: string | null
-          details: Json
           id: string
-          status: string | null
-          student_id: string | null
+          created_at: string | null
           student_line_id: string | null
           student_sf_id: string | null
+          details: Json
+          status: string | null
         }
         Insert: {
-          created_at?: string | null
-          details: Json
           id?: string
-          status?: string | null
-          student_id?: string | null
+          created_at?: string | null
           student_line_id?: string | null
           student_sf_id?: string | null
+          details: Json
+          status?: string | null
         }
         Update: {
-          created_at?: string | null
-          details?: Json
           id?: string
-          status?: string | null
-          student_id?: string | null
+          created_at?: string | null
           student_line_id?: string | null
           student_sf_id?: string | null
+          details?: Json
+          status?: string | null
         }
         Relationships: [
           {
@@ -142,9 +139,9 @@ export type Database = {
         Row: {
           id: string
           created_at: string | null
-          student_sf_id: string
-          contract_course_sf_id: string
           student_line_id: string | null
+          student_sf_id: string | null
+          contract_course_sf_id: string | null
           start_date: string
           end_date: string
           total_weeks: number | null
@@ -157,8 +154,8 @@ export type Database = {
         Insert: {
           id?: string
           created_at?: string | null
-          student_sf_id: string
-          contract_course_sf_id: string
+          student_sf_id?: string | null
+          contract_course_sf_id?: string | null
           student_line_id?: string | null
           start_date: string
           end_date: string
@@ -172,8 +169,8 @@ export type Database = {
         Update: {
           id?: string
           created_at?: string | null
-          student_sf_id?: string
-          contract_course_sf_id?: string
+          student_sf_id?: string | null
+          contract_course_sf_id?: string | null
           student_line_id?: string | null
           start_date?: string
           end_date?: string
@@ -190,9 +187,9 @@ export type Database = {
         Row: {
           id: string
           created_at: string | null
-          student_sf_id: string
-          contract_course_sf_id: string
           student_line_id: string | null
+          student_sf_id: string | null
+          contract_course_sf_id: string | null
           start_date: string
           end_date: string
           total_weeks: number | null
@@ -206,8 +203,8 @@ export type Database = {
         Insert: {
           id?: string
           created_at?: string | null
-          student_sf_id: string
-          contract_course_sf_id: string
+          student_sf_id?: string | null
+          contract_course_sf_id?: string | null
           student_line_id?: string | null
           start_date: string
           end_date: string
@@ -222,8 +219,8 @@ export type Database = {
         Update: {
           id?: string
           created_at?: string | null
-          student_sf_id?: string
-          contract_course_sf_id?: string
+          student_sf_id?: string | null
+          contract_course_sf_id?: string | null
           student_line_id?: string | null
           start_date?: string
           end_date?: string
