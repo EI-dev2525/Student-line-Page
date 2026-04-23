@@ -199,7 +199,7 @@ export function CounselingForm({ studentId, onSuccess }: CounselingFormProps) {
       const { error } = await supabase
         .from('counseling_forms')
         .insert({
-          student_line_id: studentId,
+          student_id: studentId,
           details: details,
           status: 'pending'
         })
