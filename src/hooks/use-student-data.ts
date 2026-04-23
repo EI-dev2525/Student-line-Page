@@ -3,8 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { ContractCourse, getRegularCourses } from '@/lib/course-utils'
 
 export interface StudentProfile {
-  sf_id: string | null
-  current_course_end_date: string | null
+  student_sf_id?: string | null
+  lead_sf_id?: string | null
+  current_course_end_date?: string | null
   campus?: string | null
   course?: string | null
   level?: string | null
@@ -35,20 +36,20 @@ export function useStudentData(lineId: string | undefined) {
         // 1. まずは students テーブルを確認 (既存生徒優先)
         const { data: studentData, error: studentError } = await supabase
           .from('students')
-          .select('current_course_end_date, sf_id, campus, target_score, starting_score')
+          .select('current_course_end_date, student_sf_id, campus, target_score, starting_score')
           .eq('line_id', lineId)
           .single()
 
         if (studentData) {
-          setStudentProfile(studentData)
+          setStudentProfile(studentData as StudentProfile)
           setIsLead(false)
 
-          if (studentData.sf_id) {
+          if (studentData.student_sf_id) {
             // 契約コースの取得
             const { data: coursesData, error: coursesError } = await supabase
               .from('contract_courses')
-              .select('sf_id, course_name, status, end_date, start_date, campus, student_line_id, student_name, student_id')
-              .eq('student_id', studentData.sf_id)
+              .select('contract_course_sf_id, course_name, status, end_date, start_date, campus, line_id, student_name, student_sf_id')
+              .eq('student_sf_id', studentData.student_sf_id)
 
             if (coursesError) throw coursesError
             
@@ -65,13 +66,13 @@ export function useStudentData(lineId: string | undefined) {
           // 2. 存在しなければ leads テーブルを確認
           const { data: leadData, error: leadError } = await supabase
             .from('leads')
-            .select('sf_id, campus, course, level, purpose')
+            .select('lead_sf_id, campus, course, level, purpose')
             .eq('line_id', lineId)
             .single()
 
           if (leadData) {
             setStudentProfile({
-              sf_id: leadData.sf_id,
+              lead_sf_id: leadData.lead_sf_id,
               current_course_end_date: null,
               campus: leadData.campus,
               course: leadData.course,

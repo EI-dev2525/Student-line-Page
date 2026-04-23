@@ -142,9 +142,9 @@ export function LeaveRequestForm({ studentId, onSuccess }: LeaveRequestFormProps
       const { error } = await supabase
         .from('leave_requests')
         .insert({
-          student_line_id: studentId,
-          student_sf_id: studentProfile?.sf_id || null,
-          contract_course_sf_id: targetCourse?.sf_id || null,
+          line_id: studentId,
+          student_sf_id: studentProfile?.student_sf_id || null,
+          contract_course_sf_id: targetCourse?.contract_course_sf_id || null,
           start_date: values.start_date,
           end_date: values.end_date,
           reason: values.reason,

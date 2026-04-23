@@ -21,11 +21,11 @@ export type Database = {
           end_date: string | null
           id: string
           is_regular: boolean | null
-          sf_id: string
+          contract_course_sf_id: string
           start_date: string | null
           status: string
-          student_id: string | null
-          student_line_id: string | null
+          student_sf_id: string | null
+          line_id: string | null
           student_name: string | null
         }
         Insert: {
@@ -34,11 +34,11 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_regular?: boolean | null
-          sf_id: string
+          contract_course_sf_id: string
           start_date?: string | null
           status: string
-          student_id?: string | null
-          student_line_id?: string | null
+          student_sf_id?: string | null
+          line_id?: string | null
           student_name?: string | null
         }
         Update: {
@@ -47,20 +47,20 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_regular?: boolean | null
-          sf_id?: string
+          contract_course_sf_id?: string
           start_date?: string | null
           status?: string
-          student_id?: string | null
-          student_line_id?: string | null
+          student_sf_id?: string | null
+          line_id?: string | null
           student_name?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "contract_courses_student_id_fkey"
-            columns: ["student_id"]
+            columns: ["student_sf_id"]
             isOneToOne: false
             referencedRelation: "students"
-            referencedColumns: ["sf_id"]
+            referencedColumns: ["student_sf_id"]
           },
         ]
       }
@@ -104,24 +104,27 @@ export type Database = {
         Row: {
           id: string
           created_at: string | null
-          student_line_id: string | null
+          line_id: string | null
           student_sf_id: string | null
+          lead_sf_id: string | null
           details: Json
           status: string | null
         }
         Insert: {
           id?: string
           created_at?: string | null
-          student_line_id?: string | null
+          line_id?: string | null
           student_sf_id?: string | null
+          lead_sf_id?: string | null
           details: Json
           status?: string | null
         }
         Update: {
           id?: string
           created_at?: string | null
-          student_line_id?: string | null
+          line_id?: string | null
           student_sf_id?: string | null
+          lead_sf_id?: string | null
           details?: Json
           status?: string | null
         }
@@ -139,7 +142,7 @@ export type Database = {
         Row: {
           id: string
           created_at: string | null
-          student_line_id: string | null
+          line_id: string | null
           student_sf_id: string | null
           contract_course_sf_id: string | null
           start_date: string
@@ -156,7 +159,7 @@ export type Database = {
           created_at?: string | null
           student_sf_id?: string | null
           contract_course_sf_id?: string | null
-          student_line_id?: string | null
+          line_id?: string | null
           start_date: string
           end_date: string
           total_weeks?: number | null
@@ -171,7 +174,7 @@ export type Database = {
           created_at?: string | null
           student_sf_id?: string | null
           contract_course_sf_id?: string | null
-          student_line_id?: string | null
+          line_id?: string | null
           start_date?: string
           end_date?: string
           total_weeks?: number | null
@@ -187,7 +190,7 @@ export type Database = {
         Row: {
           id: string
           created_at: string | null
-          student_line_id: string | null
+          line_id: string | null
           student_sf_id: string | null
           contract_course_sf_id: string | null
           start_date: string
@@ -205,7 +208,7 @@ export type Database = {
           created_at?: string | null
           student_sf_id?: string | null
           contract_course_sf_id?: string | null
-          student_line_id?: string | null
+          line_id?: string | null
           start_date: string
           end_date: string
           total_weeks?: number | null
@@ -221,7 +224,7 @@ export type Database = {
           created_at?: string | null
           student_sf_id?: string | null
           contract_course_sf_id?: string | null
-          student_line_id?: string | null
+          line_id?: string | null
           start_date?: string
           end_date?: string
           total_weeks?: number | null
@@ -267,7 +270,7 @@ export type Database = {
           level: string | null
           line_id: string
           purpose: string | null
-          sf_id: string | null
+          lead_sf_id: string | null
           status: string | null
           updated_at: string | null
         }
@@ -279,7 +282,7 @@ export type Database = {
           level?: string | null
           line_id: string
           purpose?: string | null
-          sf_id?: string | null
+          lead_sf_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -291,7 +294,7 @@ export type Database = {
           level?: string | null
           line_id?: string
           purpose?: string | null
-          sf_id?: string | null
+          lead_sf_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -308,7 +311,7 @@ export type Database = {
           goal_score: string | null
           id: string
           line_id: string
-          sf_id: string | null
+          student_sf_id: string | null
           starting_score: string | null
           status: string | null
           target_score: string | null
@@ -324,7 +327,7 @@ export type Database = {
           goal_score?: string | null
           id?: string
           line_id: string
-          sf_id?: string | null
+          student_sf_id?: string | null
           starting_score?: string | null
           status?: string | null
           target_score?: string | null
@@ -340,7 +343,7 @@ export type Database = {
           goal_score?: string | null
           id?: string
           line_id?: string
-          sf_id?: string | null
+          student_sf_id?: string | null
           starting_score?: string | null
           status?: string | null
           target_score?: string | null

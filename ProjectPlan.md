@@ -1,4 +1,4 @@
-# **EI Student Platform - 実装計画書 (Implementation Plan v1.6)**
+# **EI Student Platform - 実装計画書 (Implementation Plan v1.7)**
 
 
 ## **1. エグゼクティブサマリー**
@@ -103,6 +103,10 @@ graph TD
     - 運用上の簡略化と n8n 連携の最適化のため、`requests` テーブルを `vacation_requests` と `leave_requests` に分割。
 - **Salesforce ID への完全移行**:
     - UUID ベースの `user_id` を廃止。`student_sf_id` および `contract_course_sf_id` を主軸とした Salesforce 連携基盤に統一。
+- **データベース命名規則の最終統一 (v1.7 黄金規則)**:
+    - データの透明性を高め、ビルドエラーを完全に解消するために、全テーブルのカラム名を統一。
+    - LINE ID ➔ `line_id`, 生徒ID ➔ `student_sf_id`, リードID ➔ `lead_sf_id`, 契約コースID ➔ `contract_course_sf_id`。
+    - `src/types/database.ts` および全コンポーネント、フックの型同期を完了。
 
 ---
 
@@ -110,14 +114,14 @@ graph TD
 
 | テーブル名 | 用途 | 主要カラム |
 | :--- | :--- | :--- |
-| `leads` | 見込み客マスター | `line_id` (PK), `sf_id`, `status`, `campus`, `course`, `level`, `purpose` |
-| `students` | 既存生徒マスター | `line_id` (PK), `sf_id`, `status`, `campus`, `target_score`, `starting_score`, `current_course_end_date` |
-| `contract_courses` | 契約コース情報 | `student_id` (Salesforce Account ID), `course_name`, `status`, `end_date`, `start_date`, `campus`, `student_line_id`, `student_name` |
-| `vacation_requests` | Vacation申請ログ | `student_line_id`, `contract_course_sf_id`, `student_sf_id`, `start_date`, `end_date`, `effective_weeks`, `new_end_date`, `status`, `sb_weeks` |
-| `leave_requests` | 休学申請ログ | `student_line_id`, `contract_course_sf_id`, `student_sf_id`, `start_date`, `end_date`, `payment_method`, `status`, `sb_weeks` |
-| `counseling_forms` | アンケート回答 | `student_line_id`, `details`, `status` |
-| `school_breaks` | 休校期間マスタ | `start_date`, `end_date`, `description` |
-| `counseling_form_settings` | フォーム構成 | `field_type`, `label`, `options`, `is_required` |
+| `leads` | 見込み客マスター | `line_id` (PK), `lead_sf_id`, `status`, `campus`, `course`, `level`, `purpose` |
+| `students` | 既存生徒マスター | `line_id` (PK), `student_sf_id`, `status`, `campus`, `target_score`, `starting_score`, `current_course_end_date` |
+| `contract_courses` | 契約コース情報 | `contract_course_sf_id` (PK), `student_sf_id`, `course_name`, `status`, `end_date`, `start_date`, `campus`, `line_id`, `student_name` |
+| `vacation_requests` | Vacation申請ログ | `line_id`, `contract_course_sf_id`, `student_sf_id`, `start_date`, `end_date`, `effective_weeks`, `new_end_date`, `status`, `sb_weeks` |
+| `leave_requests` | 休学申請ログ | `line_id`, `contract_course_sf_id`, `student_sf_id`, `start_date`, `end_date`, `payment_method`, `status`, `sb_weeks` |
+| `counseling_forms` | アンケート回答 | `line_id`, `student_sf_id`, `lead_sf_id`, `details`, `status` |
+| `school_breaks` | 休校期間マスタ | `start_date`, `end_date`, `name` |
+| `counseling_form_settings` | フォーム構成 | `field_id` (PK), `field_type`, `label`, `options`, `is_required` |
 
 ---
 
@@ -142,6 +146,7 @@ graph TD
 - [x] **テーブル設計の最適化 (v1.3)**: `students` テーブルを `leads` と `students` に分割し、Salesforce の設計に準拠。
 - [x] **Salesforce 同期ロジックの刷新**: HTTP Callout (UPSERT) への対応と RLS ポリシーの調整。
 - [x] **取得ロジックの優先順位付け**: `useStudentData` における既存生徒優先フェッチの実装。
+- [x] **データベース命名規則の最終統一 (v1.7 黄金規則)**: 全テーブルのカラム名および型定義の一貫性を確保。
 
 ### 📅 **Phase 4: 将来的な拡張性**
 - [ ] **プッシュ通知統合**: 申請承認時の LINE Messaging API 連携。

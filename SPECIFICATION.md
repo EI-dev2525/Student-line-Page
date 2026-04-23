@@ -1,6 +1,6 @@
 ---
 
-# **プロジェクト仕様書 - EI Student Platform (v1.6)**
+# **プロジェクト仕様書 - EI Student Platform (v1.7)**
 
 
 ## **1. プロジェクト概要**
@@ -60,7 +60,7 @@
   * **動的フィードバック（サマリーカード）**: 期間選択時に「申請期間」と「延長効果」を統合したカードを表示。視覚的な強調と情報の階層化により、ユーザーの理解を助ける。
   * **Salesforce ID連携 (v1.6 改訂)**: 
     - 従来の `requests` テーブルを `vacation_requests` と `leave_requests` に分割。UUID ベースの `user_id` を廃止。
-    - すべての申請ログにおいて `student_sf_id` と `contract_course_sf_id` をキーとして Salesforce と直接紐付け、外部ツール（n8n 等）による連携コストを最小化する。
+    - すべての申請ログにおいて、命名規則の「黄金規則」に基づき、`line_id`, `student_sf_id`, `contract_course_sf_id` をキーとして Salesforce と直接紐付け、外部ツール（n8n 等）による連携コストを最小化する。
 * **主要ルート**:
   * `/vacation`: **Vacation申請**（最大3週間まで。受講期間の自動延長計算あり）
   * `/leave`: **休学申請**（4週間以上。支払い方法選択機能あり。Vacationと同様のSB除外・延長計算およびサマリーカード表示を実装）
@@ -122,9 +122,12 @@ graph TD
 
 ## **5. データ連携・セキュリティ仕様**
 
-### **5.1. 同期キー (Unique Key)**
-* **LINE User ID (`line_id`)**: システム全体のユニークキー。`leads` および `students` テーブルの主キー（PK）として使用。Salesforce からの UPSERT 時の `on_conflict` キーとしても機能する。
-* **Salesforce ID (`sf_id`)**: 各オブジェクト（Lead/Account）の Salesforce ID。
+### **5.1. 同期キー (Unique Key) と命名の黄金規則**
+* **LINE User ID (`line_id`)**: システム全体のユニークキー。全てのテーブルで共通の名前として使用し、Salesforce からの UPSERT 時の `on_conflict` キーとしても機能する。
+* **Salesforce ID**: 由来を明確にするため、以下の名前に統一。
+  - 生徒のID ➔ **`student_sf_id`**
+  - リードのID ➔ **`lead_sf_id`**
+  - 契約コースのID ➔ **`contract_course_sf_id`**
 
 ### **5.2. セキュリティ**
 * **RLS (Row Level Security)**: Supabaseのポリシーを用い、ユーザーが自身の `line_id` に関連するデータのみを操作できるよう制限。また、Salesforce からの HTTP Callout によるデータ同期を許可するため、`public` ロールに対して `INSERT` および `UPDATE` を許可する。

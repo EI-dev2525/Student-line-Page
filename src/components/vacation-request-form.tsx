@@ -102,7 +102,7 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
   // 単一コースの場合に自動選択
   useEffect(() => {
     if (regularCourses.length === 1) {
-      form.setValue('contract_course_id', regularCourses[0].sf_id)
+      form.setValue('contract_course_id', regularCourses[0].contract_course_sf_id)
       // 必要に応じてフォームのバリデーション状態を更新
       form.trigger('contract_course_id')
     }
@@ -166,8 +166,8 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
       const { error } = await supabase
         .from('vacation_requests')
         .insert({
-          student_line_id: studentId,
-          student_sf_id: studentProfile?.sf_id || null,
+          line_id: studentId,
+          student_sf_id: studentProfile?.student_sf_id || null,
           contract_course_sf_id: values.contract_course_id,
           start_date: values.start_date,
           end_date: values.end_date,
@@ -230,13 +230,13 @@ export function VacationRequestForm({ studentId, onSuccess }: VacationRequestFor
                   <FormControl>
                     <SelectTrigger className="h-12 bg-white w-full overflow-hidden">
                       <SelectValue placeholder="対象コースを選択">
-                        {field.value ? regularCourses.find(c => c.sf_id === field.value)?.course_name : undefined}
+                        {field.value ? regularCourses.find(c => c.contract_course_sf_id === field.value)?.course_name : undefined}
                       </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {regularCourses.map((c) => (
-                      <SelectItem key={c.sf_id} value={c.sf_id}>
+                      <SelectItem key={c.contract_course_sf_id} value={c.contract_course_sf_id}>
                         <span className="truncate">{c.course_name}</span>
                       </SelectItem>
                     ))}

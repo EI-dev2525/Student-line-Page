@@ -1,13 +1,13 @@
 export interface ContractCourse {
-  sf_id: string
+  contract_course_sf_id: string
   course_name: string
   status: string
   is_regular?: boolean | null
   end_date?: string | null
   start_date?: string | null
   campus?: string | null
-  student_id?: string | null
-  student_line_id?: string | null
+  student_sf_id?: string | null
+  line_id?: string | null
   student_name?: string | null
   [key: string]: any
 }
